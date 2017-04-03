@@ -3,6 +3,7 @@
             [reagent.session :as session]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
+            [thi.ng.geom.svg.adapter :as adapter]
             [thi.ng.geom.viz.core :as viz]
             [thi.ng.geom.svg.core :as svg]
             [thi.ng.geom.core.vector :as v]
@@ -12,10 +13,19 @@
 
 ;; -------------------------
 ;; Views
-(defn export-viz
+
+(defn- patch-svg
+  [[k m & body]]
+  (adapter/inject-element-attribs
+   (vec (concat [k
+                 (-> m
+                     (dissoc "xmlns:xlink")
+                     (assoc "xmlnsXlink" "http://www.w3.org/1999/xlink"))]
+                body))))
+
+(defn create-svg
   [viz]
-  (let [[k m & stuff] (svg/svg {:width 600 :height 320} viz)]
-    (vec (concat [k (dissoc m "xmlns:xlink")] stuff))))
+  (patch-svg (svg/svg {:width 600 :height 320} viz)))
 
 (defn bar-spec
   [num width]
@@ -55,7 +65,7 @@
      (assoc :data [((bar-spec 1 20) 0 "#0af")])
      (viz/svg-plot2d-cartesian)
      ((fn [x] (cljs.pprint/pprint x) x))
-     (export-viz))])
+     (create-svg))])
 
 (defn about-page []
   [:div [:h2 "About geom"]
